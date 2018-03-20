@@ -30,8 +30,7 @@ rankhospital <- function(state, outcome, num = "best") {
         
         
         
-        ## Return hospital name in that state with the given rank
-        ## 30-day death rate
+     
         ## Hospitals that do not have data on a particular outcome should
         ## be excluded from the set of hospitals when deciding the rankings
         if (outcome=="heart attack"){index=11}
@@ -42,16 +41,23 @@ rankhospital <- function(state, outcome, num = "best") {
         removeNaOutcomeIndex=complete.cases(dfSelectedState[,index])
         dfRemoveNaOutcome=dfSelectedState[removeNaOutcomeIndex,]
         
-        ## If the number given by num is larger than the number of hospitals 
-        ## in that state, then the function should return NA
-        if (num>nrow(dfRemoveNaOutcome)){
-                stop("NA")
-        }
+       
+        ## Return hospital name in that state with the given rank
+        ## 30-day death rate
+        outcomeOrderIndex=order(dfRemoveNaOutcome[,index])
         
-        outcomeRank=order(dfRemoveNaOutcome[,index],decreasing = TRUE)
-        dfRank=mutate(dfRemoveNaOutcome,outcomeRank)
-        filter(dfRank,dfRank$outcomeRank==num)
-        
+        if (num=="best"){rankIndex=outcomeOrderIndex[1]}
+        else if (num=="worst"){rankIndex=outcomeOrderIndex[length(outcomeOrderIndex)]}
+        else {
+                ## If the number given by num is larger than the number of hospitals 
+                ## in that state, then the function should return NA
+                if (num>nrow(dfRemoveNaOutcome)){
+                        stop("NA")
+                }
+                rankIndex=outcomeOrderIndex[num]
+                }
+       
+        dfRemoveNaOutcome[rankIndex,c(2,index)]
 
         
 }
