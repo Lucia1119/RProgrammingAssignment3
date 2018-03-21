@@ -1,21 +1,21 @@
+library(data.table)
+
+
+## Read outcome data
+outcome_of_care_measures <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+## [2] "Hospital.Name"
+## [7] "State"
+## [11] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack" 
+## [17] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
+## [23] "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia" 
+
+## convert character into numeric
+outcome_of_care_measures[,11]=as.numeric(outcome_of_care_measures[,11])
+outcome_of_care_measures[,17]=as.numeric(outcome_of_care_measures[,17])
+outcome_of_care_measures[,23]=as.numeric(outcome_of_care_measures[,23])
+
+
 rankhospital <- function(state, outcome, num = "best") {
-        
-        ## Read outcome data
-        outcome_of_care_measures <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
-        ## [2] "Hospital.Name"
-        ## [7] "State"
-        ## [11] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack" 
-        ## [17] "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure"
-        ## [23] "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia" 
-        
-        ## convert character into numeric
-        outcome_of_care_measures[,11]=as.numeric(outcome_of_care_measures[,11])
-        outcome_of_care_measures[,17]=as.numeric(outcome_of_care_measures[,17])
-        outcome_of_care_measures[,23]=as.numeric(outcome_of_care_measures[,23])
-        
-        
-        
-        
         ## Check that state and outcome are valid
         validState=names(table(outcome_of_care_measures$State))
         validOutcome=c("heart attack","heart failure","pneumonia")
@@ -26,8 +26,6 @@ rankhospital <- function(state, outcome, num = "best") {
         else if (length(grep(outcome,validOutcome))==0){
                 stop("invalid outcome")
         }
-        
-        
         
         
      
@@ -51,13 +49,27 @@ rankhospital <- function(state, outcome, num = "best") {
         else {
                 ## If the number given by num is larger than the number of hospitals 
                 ## in that state, then the function should return NA
-                if (num>nrow(dfRemoveNaOutcome)){
-                        stop("NA")
-                }
+                #if (num>nrow(dfRemoveNaOutcome)){
+                #        stop("NA")
+                #}
                 rankIndex=outcomeOrderIndex[num]
                 }
        
-        dfRemoveNaOutcome[rankIndex,c(2,index)]
+        ## dfRemoveNaOutcome[rankIndex,c(2,7,index)]
+        dfRemoveNaOutcome[rankIndex,c(2,7)]
 
-        
+}
+
+## Ranking hospitals in all states
+rankall <- function(outcome, num = "best") {
+        stateTable=table(outcome_of_care_measures$State)
+        rankAllHospital=data.frame(Hospital.Name="hospital",State="state",stringsAsFactors = FALSE)
+        for (stateIndex in 1:length(stateTable)){
+                stateName=names(stateTable[stateIndex])
+                stateRank=rankhospital(stateName,outcome,num)
+                #print(stateRank)
+                rankAllHospital=rbind(rankAllHospital,stateRank)
+        }
+        names(rankAllHospital)=c("hospital","state")
+        return(rankAllHospital)
 }
